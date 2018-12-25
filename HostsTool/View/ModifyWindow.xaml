@@ -3,56 +3,63 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
         xmlns:local="clr-namespace:HostsTool.View"
         mc:Ignorable="d"
-        Title="手动修改Hosts" Height="600" Width="600" x:Name="window"
-        WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+        Title="ModifyWindow" Height="600" Width="600" 
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        BorderBrush="#FF2196F3" BorderThickness="1">
 
-    <Window.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Theme/ButtonStyle.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Window.Resources>
+  <Window.Resources>
+    <ResourceDictionary>
+      <Viewbox x:Key="Icon" Stretch="Uniform" x:Shared="False">
+        <Image Source="/HostsTool;component/Resources/Icon.ico" />
+      </Viewbox>
+    </ResourceDictionary>
+  </Window.Resources>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-        <TextBox Grid.Row="0" 
-                 Margin="10,10,10,5"
-                 Text="{Binding DataContext.HostsText,
-                        ElementName=window,
-                        Mode=TwoWay,
-                        UpdateSourceTrigger=PropertyChanged}"
-                 Padding="5"
-                 VerticalScrollBarVisibility="Auto"
-                 AcceptsReturn="True"
-                 AcceptsTab="True"
-                 FontSize="14"  />
-        <StackPanel Grid.Row="1" Margin="0,5,0,10" Orientation="Horizontal" HorizontalAlignment="Center">
-            <Button Margin="5,0,5,0"
-                        Content=" 保存修改 "
-                        Command="{Binding SaveChangesCommand}"
-                        Style="{StaticResource FucButtonStyle}" />
-            <Button Margin="10,0,5,0"
-                        Content=" 撤销修改 "
-                        Command="{Binding CancelChangesCommand}"
-                        Style="{StaticResource FucButtonStyle}" />
-            <Button Margin="5,0,5,0"
-                        Content=" 还原默认值 "
-                        Command="{Binding RestoreCommand}"
-                        Style="{StaticResource FucButtonStyle}" />
-            <Button Margin="5,0,5,0"
-                        Content=" 另存为文件 "
-                        Command="{Binding SaveAsCommand}"
-                        Style="{StaticResource FucButtonStyle}" />
-            <Button Margin="5,0,10,0"
-                        Content=" 从文件读取 "
-                        Command="{Binding ReadFromCommand}"
-                        Style="{StaticResource FucButtonStyle}" />
-        </StackPanel>
-    </Grid>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+    <mde:AppBar x:Name="appBar" Grid.Row="0" Title="Hosts Tool" MouseMove="AppBar_MouseMove" AppIcon="{StaticResource Icon}">
+      <Button Style="{StaticResource MaterialDesignToolForegroundButton}" Margin="8,0" ToolTip="Close" Click="Close">
+        <md:PackIcon Kind="Close" Height="24" Width="24"/>
+      </Button>
+    </mde:AppBar>
+    <TextBox Grid.Row="1" 
+             md:HintAssist.Hint="本地Hosts内容"
+             md:TextFieldAssist.TextBoxViewMargin="1 0 1 0"
+             Margin="8"
+             Text="{Binding HostsText,
+                    Mode=TwoWay,
+                    UpdateSourceTrigger=PropertyChanged}"
+             VerticalScrollBarVisibility="Auto"
+             AcceptsReturn="True"
+             AcceptsTab="True"
+             Style="{StaticResource MaterialDesignOutlinedTextFieldTextBox}"
+             FontSize="16" />
+    <StackPanel Grid.Row="2" Margin="0,0,0,8" Orientation="Horizontal" HorizontalAlignment="Center">
+      <Button Margin="4,0"
+              Content="保存修改"
+              Command="{Binding SaveChangesCommand}" />
+      <Button Margin="4,0"
+              Content="撤销修改"
+              Command="{Binding CancelChangesCommand}" />
+      <Button Margin="4,0"
+              Content="还原默认值"
+              Command="{Binding RestoreDefaultCommand}" />
+      <Button Margin="4,0"
+              Content="另存为文件"
+              Command="{Binding SaveAsCommand}" />
+      <Button Margin="4,0"
+              Content="从文件读取"
+              Command="{Binding LoadFromCommand}" />
+    </StackPanel>
+  </Grid>
 </Window>

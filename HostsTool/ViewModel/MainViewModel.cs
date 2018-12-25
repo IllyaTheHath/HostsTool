@@ -1,19 +1,17 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Data;
-using System.Linq;
+using System.IO;
 using System.Windows;
 using System.Windows.Input;
-
 using HostsTool.Command;
-using HostsTool.Data;
 using HostsTool.Model;
 using HostsTool.Util;
 using HostsTool.View;
 
 namespace HostsTool.ViewModel
 {
-    class MainViewModel : ViewModelBase
+    public class MainViewModel : ViewModelBase
     {
         private ObservableCollection<Source> _sourceList;
         public ObservableCollection<Source> Sourcelist
@@ -25,7 +23,7 @@ namespace HostsTool.ViewModel
             set
             {
                 this._sourceList = value;
-                OnPropertyChanged("SourceList");
+                OnPropertyChanged(nameof(Sourcelist));
             }
         }
 
@@ -39,7 +37,7 @@ namespace HostsTool.ViewModel
             set
             {
                 this._selectItem = value;
-                OnPropertyChanged("SelectedItem");
+                OnPropertyChanged(nameof(SelectedItem));
             }
         }
 
@@ -118,21 +116,6 @@ namespace HostsTool.ViewModel
             }
         }
 
-        private ICommand _aboutCommand;
-        public ICommand AboutCommand
-        {
-            get
-            {
-                if (_aboutCommand == null)
-                {
-                    _aboutCommand = new DelegateCommand(
-                        param => this.ShowAbout()
-                    );
-                }
-                return _aboutCommand;
-            }
-        }
-
         private ICommand _updateHostsCommand;
         public ICommand UpdateHostsCommand
         {
@@ -167,6 +150,13 @@ namespace HostsTool.ViewModel
         {
             InitDatabase();
             InitializeList();
+
+            if (this.Sourcelist.Count == 0)
+            {
+                AddItem();
+            }
+
+            this.SelectedItem = this.Sourcelist[0];
         }
 
         private void InitDatabase()
@@ -191,19 +181,19 @@ namespace HostsTool.ViewModel
                 "sourceContent TEXT" +
                 ")";
             SQLiteHelper.ExecuteNonQuery(cmdText);
-            
+
             var source = new Source()
             {
                 SourceGuid = Guid.NewGuid(),
                 SourceTitle = "Localhost",
-                SourceType = SourceTypes.Local,
+                SourceType = SourceType.Local,
                 SourceEnable = true,
                 SourceUrl = null,
-                SourceContent = SharedInfo.DefaultHosts
+                SourceContent = StaticInfo.DefaultHosts
             };
-            String cmdTextl = "INSERT INTO 'source'" +
+            String cmdTextl = "INSERT INTO 'source' " +
                 "(sourceGuid,sourceTitle,sourceType,sourceUrl,sourceEnable,sourceContent) " +
-                "VALUES" +
+                "VALUES " +
                 "(@sourceGuid,@sourceTitle,@sourceType,@sourceUrl,@sourceEnable,@sourceContent)";
             SQLiteHelper.ExecuteNonQuery(cmdTextl,
                 SQLiteHelper.CreateParameter("sourceGuid", DbType.String, source.SourceGuid),
@@ -217,14 +207,57 @@ namespace HostsTool.ViewModel
         private void InitializeList()
         {
             SQLiteHelper.SetConnection();
-            String cmdText = "SELECT * FROM `source`";
-            var items = SQLiteHelper.ExecuteReader<Source>(Source.Create, cmdText);
-            Sourcelist = new ObservableCollection<Source>(items);
+            String cmdText = "SELECT * FROM 'source'";
+            var items = SQLiteHelper.ExecuteReader<Source>(cmdText);
             SQLiteHelper.DisposeConnection();
-            if (Sourcelist.Count > 0)
+
+            Sourcelist = new ObservableCollection<Source>(items);
+            if (Sourcelist != null && Sourcelist.Count > 0)
             {
                 this.SelectedItem = Sourcelist[0];
             }
+
+            #region test data
+            //this.Sourcelist = new ObservableCollection<Source>
+            //{
+            //    new Source()
+            //    {
+            //        SourceGuid = Guid.NewGuid(),
+            //        SourceTitle = "本地源1",
+            //        SourceType = SourceType.Local,
+            //        SourceEnable = true,
+            //        SourceUrl = String.Empty,
+            //        SourceContent = "127.0.0.1 website.com"
+            //    },
+            //    new Source()
+            //    {
+            //        SourceGuid = Guid.NewGuid(),
+            //        SourceTitle = "网络源1",
+            //        SourceType = SourceType.Web,
+            //        SourceEnable = true,
+            //        SourceUrl = "www.baidu.com",
+            //        SourceContent = String.Empty
+            //    },
+            //    new Source()
+            //    {
+            //        SourceGuid = Guid.NewGuid(),
+            //        SourceTitle = "本地源2",
+            //        SourceType = SourceType.Local,
+            //        SourceEnable = false,
+            //        SourceUrl = String.Empty,
+            //        SourceContent = "127.0.0.1 website.com"
+            //    },
+            //    new Source()
+            //    {
+            //        SourceGuid = Guid.NewGuid(),
+            //        SourceTitle = "网络源2",
+            //        SourceType = SourceType.Web,
+            //        SourceEnable = false,
+            //        SourceUrl = "www.google.com",
+            //        SourceContent = String.Empty
+            //    }
+            //};
+            #endregion
         }
 
         private void AddItem()
@@ -232,46 +265,56 @@ namespace HostsTool.ViewModel
             var source = new Source()
             {
                 SourceGuid = Guid.NewGuid(),
-                SourceTitle = "本地源",
-                SourceType = SourceTypes.Local,
-                SourceEnable = true,
+                SourceTitle = "本地源Localhost",
+                SourceType = SourceType.Local,
+                SourceEnable = false,
                 SourceUrl = null,
-                SourceContent = "127.0.0.1 website.com"
+                SourceContent = "127.0.0.1 localhost"
             };
-            Sourcelist.Add(source);
+            this.Sourcelist.Add(source);
+            this.SelectedItem = source;
         }
 
         private void RemoveItem()
         {
             SQLiteHelper.SetConnection();
-            String cmdText = String.Format("DELETE FROM 'source' WHERE sourceGuid='{0}'",
-                SelectedItem.SourceGuid);
+            String cmdText = $"DELETE FROM 'source' WHERE sourceGuid='{SelectedItem.SourceGuid}'";
             SQLiteHelper.ExecuteNonQuery(cmdText);
             SQLiteHelper.DisposeConnection();
 
-            this.Sourcelist.Remove(SelectedItem);
-            if (Sourcelist.Count > 0)
-                this.SelectedItem = Sourcelist[0];
-            else
-                this.SelectedItem = null;
+            if (SelectedItem != null)
+            {
+                this.Sourcelist.Remove(SelectedItem);
+                this.SelectedItem = this.Sourcelist.Count > 0 ? this.Sourcelist[0] : null;
+            }
+            if (this.Sourcelist.Count == 0)
+            {
+                AddItem();
+            }
         }
 
         private void MoveUp()
         {
-            if (SelectedItem == Sourcelist.First())
+            if (this.Sourcelist != null && this.SelectedItem != null)
             {
-                return;
+                var index = this.Sourcelist.IndexOf(SelectedItem);
+                if (index != 0)
+                {
+                    this.Sourcelist.Move(index, index - 1);
+                }
             }
-            Sourcelist.Move(Sourcelist.IndexOf(SelectedItem), Sourcelist.IndexOf(SelectedItem) - 1);
         }
 
         private void MoveDown()
         {
-            if (SelectedItem == Sourcelist.Last())
+            if (this.Sourcelist != null && this.SelectedItem != null)
             {
-                return;
+                var index = this.Sourcelist.IndexOf(SelectedItem);
+                if (index != this.Sourcelist.Count - 1)
+                {
+                    Sourcelist.Move(index, index + 1);
+                }
             }
-            Sourcelist.Move(Sourcelist.IndexOf(SelectedItem), Sourcelist.IndexOf(SelectedItem) + 1);
         }
 
         private void SaveChanges()
@@ -281,16 +324,13 @@ namespace HostsTool.ViewModel
                 "(sourceGuid,sourceTitle,sourceType,sourceUrl,sourceEnable,sourceContent) " +
                 "VALUES" +
                 "(@sourceGuid,@sourceTitle,@sourceType,@sourceUrl,@sourceEnable,@sourceContent)";
-            foreach(var item in Sourcelist)
-            { 
-                if(item.SourceType == SourceTypes.Local)
-                {
+
+            foreach (var item in Sourcelist)
+            {
+                if (item.SourceType == SourceType.Local)
                     item.SourceUrl = null;
-                }
-                else if(item.SourceType == SourceTypes.Web)
-                {
+                else if (item.SourceType == SourceType.Web)
                     item.SourceContent = null;
-                }
                 SQLiteHelper.ExecuteNonQuery(cmdText,
                     SQLiteHelper.CreateParameter("sourceGuid", DbType.String, item.SourceGuid),
                     SQLiteHelper.CreateParameter("sourceTitle", DbType.String, item.SourceTitle),
@@ -311,33 +351,29 @@ namespace HostsTool.ViewModel
                     continue;
                 try
                 {
-                    var piece = source.SourceType == SourceTypes.Local ?
-                                                    source.SourceContent :
-                                                    await Utilities.GetStringAsync(source.SourceUrl);
-                    Utilities.MixHosts(ref hosts, piece, source.SourceTitle);
+                    var data = source.SourceType == SourceType.Local ?
+                                                     source.SourceContent :
+                                                     await Utilities.GetStringAsync(source.SourceUrl);
+                    Utilities.MixHosts(ref hosts, data, source.SourceTitle);
                 }
                 catch (Exception)
                 {
-                    MessageBox.Show(String.Format("源 \"{0}\" 内容获取失败，将略过", source.SourceTitle));
+                    MessageBox.Show(String.Format($"源 \"{source.SourceTitle}\" 内容获取失败，将略过"));
                     continue;
                 }
-                
+
             }
-            System.IO.File.WriteAllText(SharedInfo.HostsPath, hosts);
+            File.WriteAllText(StaticInfo.HostsPath, hosts);
             Utilities.FlushDNS();
-            MessageBox.Show("更新成功！","Hosts Tool");
-        }
-        
-        private void ShowModifyHosts()
-        {
-            ModifyWindow mw = new ModifyWindow();
-            mw.ShowDialog();
+            MessageBox.Show("更新成功！", "Hosts Tool");
         }
 
-        private void ShowAbout()
+        private void ShowModifyHosts()
         {
-            AboutWindow aw = new AboutWindow();
-            aw.ShowDialog();
+            new ModifyWindow()
+            {
+                Owner = Application.Current.MainWindow
+            }.ShowDialog();
         }
     }
 }

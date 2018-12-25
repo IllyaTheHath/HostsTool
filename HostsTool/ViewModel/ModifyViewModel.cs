@@ -1,18 +1,16 @@
 ﻿using System;
 using System.IO;
+using System.Windows;
 using System.Windows.Input;
-
-using Microsoft.Win32;
-
 using HostsTool.Command;
-using HostsTool.Data;
 using HostsTool.Util;
+using Microsoft.Win32;
 
 namespace HostsTool.ViewModel
 {
-    class ModifyViewModel : ViewModelBase
+    public class ModifyViewModel : ViewModelBase
     {
-        private String _hostsTextBackup;
+        private readonly String _hostsTextBackup;
 
         private String _hostsText;
         public String HostsText
@@ -24,7 +22,7 @@ namespace HostsTool.ViewModel
             set
             {
                 this._hostsText = value;
-                OnPropertyChanged("HostsText");
+                OnPropertyChanged(nameof(HostsText));
             }
         }
 
@@ -58,18 +56,18 @@ namespace HostsTool.ViewModel
             }
         }
 
-        private ICommand _restoreCommand;
-        public ICommand RestoreCommand
+        private ICommand _restoreDefaultCommand;
+        public ICommand RestoreDefaultCommand
         {
             get
             {
-                if (_restoreCommand == null)
+                if (_restoreDefaultCommand == null)
                 {
-                    _restoreCommand = new DelegateCommand(
-                        param => this.Restore()
+                    _restoreDefaultCommand = new DelegateCommand(
+                        param => this.RestoreDefault()
                     );
                 }
-                return _restoreCommand;
+                return _restoreDefaultCommand;
             }
         }
 
@@ -88,31 +86,32 @@ namespace HostsTool.ViewModel
             }
         }
 
-        private ICommand _readFromCommand;
-        public ICommand ReadFromCommand
+        private ICommand _loadFromCommand;
+        public ICommand LoadFromCommand
         {
             get
             {
-                if (_readFromCommand == null)
+                if (_loadFromCommand == null)
                 {
-                    _readFromCommand = new DelegateCommand(
-                        param => this.ReadFrom()
+                    _loadFromCommand = new DelegateCommand(
+                        param => this.LoadFrom()
                     );
                 }
-                return _readFromCommand;
+                return _loadFromCommand;
             }
         }
 
         public ModifyViewModel()
         {
-            this.HostsText = File.ReadAllText(SharedInfo.HostsPath);
+            this.HostsText = File.ReadAllText(StaticInfo.HostsPath);
             this._hostsTextBackup = this.HostsText;
         }
 
         private void SaveChanges()
         {
-            File.WriteAllText(SharedInfo.HostsPath, this.HostsText);
+            File.WriteAllText(StaticInfo.HostsPath, this.HostsText);
             Utilities.FlushDNS();
+            MessageBox.Show("保存成功", "Hosts Tool");
         }
 
         private void CancelChanges()
@@ -120,11 +119,12 @@ namespace HostsTool.ViewModel
             this.HostsText = this._hostsTextBackup;
         }
 
-        private void Restore()
+        private void RestoreDefault()
         {
-            this.HostsText = SharedInfo.DefaultHosts;
-            File.WriteAllText(SharedInfo.HostsPath, this.HostsText);
+            this.HostsText = StaticInfo.DefaultHosts;
+            File.WriteAllText(StaticInfo.HostsPath, this.HostsText);
             Utilities.FlushDNS();
+            MessageBox.Show("还原成功", "Hosts Tool");
         }
 
         private void SaveAs()
@@ -137,7 +137,7 @@ namespace HostsTool.ViewModel
             }
         }
 
-        private void ReadFrom()
+        private void LoadFrom()
         {
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.Filter = "文本文件(*.txt)|*.txt|所有文件(*.*)|*.*";
@@ -146,7 +146,5 @@ namespace HostsTool.ViewModel
                 this.HostsText = File.ReadAllText(ofd.FileName);
             }
         }
-        
     }
 }
-

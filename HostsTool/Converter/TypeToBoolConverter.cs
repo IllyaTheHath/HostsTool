@@ -1,22 +1,20 @@
 ﻿using System;
 using System.Globalization;
 using System.Windows.Data;
-using System.Windows.Media;
-
-using HostsTool.Data;
+using HostsTool.Model;
 
 namespace HostsTool.Converter
 {
-    class TypeToBrushConverter : IValueConverter
+    public class TypeToBoolConverter : IValueConverter
     {
         public Object Convert(Object value, Type targetType, Object parameter, CultureInfo culture)
         {
-            return (Int32)value == SourceTypes.Local ? Brushes.Blue : Brushes.Purple;
+            return (SourceType)value == (SourceType)Int32.Parse(parameter.ToString()) ? true : false;
         }
 
         public Object ConvertBack(Object value, Type targetType, Object parameter, CultureInfo culture)
         {
-            return (Brush)value == Brushes.Blue ? SourceTypes.Local : SourceTypes.Web;
+            return (Boolean)value == true ? SourceType.Local : SourceType.Web;
         }
     }
 }

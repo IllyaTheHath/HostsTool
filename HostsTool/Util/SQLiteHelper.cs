@@ -6,13 +6,10 @@ using System.IO;
 
 namespace HostsTool.Util
 {
-    /// <summary>
-    /// SQLite数据库简单操作工具类
-    /// </summary>
-    internal static class SQLiteHelper
+    public class SQLiteHelper
     {
         private static String _datasource = @"data.db";
-        private static SQLiteConnection _connection;
+        private static SQLiteConnection _connection = null;
         private static Boolean _isOpen = false;
 
         /// <summary>
@@ -21,7 +18,7 @@ namespace HostsTool.Util
         /// <param name="datasource">数据源</param>
         public static void SetConnection(String datasource = null)
         {
-            if (!String.IsNullOrEmpty(datasource))
+            if (!String.IsNullOrWhiteSpace(datasource))
                 _datasource = datasource;
             var connectionString = new SQLiteConnectionStringBuilder
             {
@@ -36,9 +33,10 @@ namespace HostsTool.Util
         /// </summary>
         public static void DisposeConnection()
         {
+            if (_connection == null)
+                return;
             CloseConnection();
-            if (_connection != null)
-                _connection.Dispose();
+            _connection.Dispose();
             GC.Collect();
         }
 
@@ -75,6 +73,8 @@ namespace HostsTool.Util
         /// </summary>
         private static void OpenConnection()
         {
+            if (_connection == null)
+                return;
             if (!_isOpen)
                 _connection.Open();
             _isOpen = true;
@@ -85,11 +85,13 @@ namespace HostsTool.Util
         /// </summary>
         private static void CloseConnection()
         {
+            if (_connection == null)
+                return;
             if (_isOpen)
                 _connection.Close();
             _isOpen = false;
         }
-        
+
         /// <summary>
         /// 创建数据库操作命令
         /// </summary>
@@ -98,8 +100,8 @@ namespace HostsTool.Util
         /// <returns>命令</returns>
         private static SQLiteCommand CreateCommand(String commandText, SQLiteParameter[] parameters)
         {
-            var cmd = new SQLiteCommand(commandText, _connection);
-            if (parameters.Length > 0)
+            SQLiteCommand cmd = new SQLiteCommand(commandText, _connection);
+            if (parameters != null && parameters.Length > 0)
             {
                 cmd.Parameters.AddRange(parameters);
             }
@@ -123,37 +125,6 @@ namespace HostsTool.Util
             };
         }
 
-        ///// <summary>
-        ///// 对SQLite数据库执行增删改操作
-        ///// </summary>
-        ///// <param name="command">数据库操作命令</param>
-        ///// <returns>受影响的行数</returns>
-        ///// <exception cref="Exception"></exception>
-        //public static Int32 ExecuteNonQuery(SQLiteCommand command)
-        //{
-        //    Int32 rows = 0;
-
-        //    try
-        //    {
-        //        OpenConnection();
-        //        using (SQLiteTransaction transaction = _connection.BeginTransaction())
-        //        {
-        //            rows = command.ExecuteNonQuery();
-        //            transaction.Commit();
-        //        }
-                    
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw;
-        //    }
-        //    finally
-        //    {
-        //        CloseConnection();
-        //    }
-        //    return rows;
-        //}
-
         /// <summary>
         /// 对SQLite数据库执行增删改操作
         /// </summary>
@@ -167,15 +138,10 @@ namespace HostsTool.Util
             try
             {
                 OpenConnection();
-                using (SQLiteTransaction transaction = _connection.BeginTransaction())
+                using (var cmd = CreateCommand(commandText, parameters))
                 {
-                    using (var cmd = CreateCommand(commandText, parameters))
-                    {
-                        row = cmd.ExecuteNonQuery();
-                    }
-                    transaction.Commit();
+                    row = cmd.ExecuteNonQuery();
                 }
-
             }
             catch (Exception)
             {
@@ -188,31 +154,6 @@ namespace HostsTool.Util
             return row;
         }
 
-        ///// <summary>
-        ///// 对SQLite数据库执行查询操作，返回关联的SQLiteDataReader实例
-        ///// </summary>
-        ///// <param name="command">数据库操作命令</param>
-        ///// <returns>关联的SQLiteDataReader实例</returns>
-        ///// <exception cref="Exception"></exception>
-        //public static SQLiteDataReader ExecuteReader(SQLiteCommand command)
-        //{
-        //    SQLiteDataReader reader;
-        //    try
-        //    {
-        //        OpenConnection();
-        //        reader = command.ExecuteReader();
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw;
-        //    }
-        //    finally
-        //    {
-        //        CloseConnection();
-        //    }
-        //    return reader;
-        //}
-
         /// <summary>
         /// 对SQLite数据库执行查询操作，返回关联的SQLiteDataReader实例
         /// </summary>
@@ -222,7 +163,7 @@ namespace HostsTool.Util
         /// <exception cref="Exception"></exception>
         public static SQLiteDataReader ExecuteReader(String commandText, params SQLiteParameter[] parameters)
         {
-            SQLiteDataReader reader;
+            SQLiteDataReader reader = null;
             try
             {
                 OpenConnection();
@@ -243,42 +184,16 @@ namespace HostsTool.Util
         }
 
         /// <summary>
-        /// 对SQLite数据库执行查询操作，返回类型T的枚举集合
-        /// </summary>
-        /// <typeparam name="T">类型T</typeparam>
-        /// <param name="commandText">SQL语句</param>
-        /// <param name="BuildObject">类型T的BuildObject函数</param>
-        /// <param name="parameters">SQL语句参数</param>
-        /// <returns>类型T的枚举集合</returns>
-        public static IEnumerable<T> ExecuteReader<T>(String commandText, Func<IDataRecord, T> BuildObject, params SQLiteParameter[] parameters)
-        {
-            try
-            {
-                OpenConnection();
-                using (var cmd = CreateCommand(commandText, parameters))
-                {
-                    var reader = cmd.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        yield return BuildObject(reader);
-                    }
-                }
-            }
-            finally
-            {
-                CloseConnection();
-            }
-        }
-
-        /// <summary>
         /// 对SQLite数据库执行查询操作，返回类型T的List集合
         /// </summary>
-        /// <typeparam name="T">类型T</typeparam>
+        /// <typeparam name="T">返回List集合中元素数据类型</typeparam>
         /// <param name="BuildObject">类型T的BuildObject函数</param>
         /// <param name="commandText">SQL语句</param>
         /// <param name="parameters">SQL语句参数</param>
         /// <returns>类型T的List集合</returns>
-        public static List<T> ExecuteReader<T>(Func<IDataRecord, T> BuildObject, String commandText, params SQLiteParameter[] parameters)
+        /// <exception cref="Exception"></exception>
+        public static List<T> ExecuteReader<T>(String commandText, params SQLiteParameter[] parameters)
+            where T : class, new()
         {
             List<T> list = new List<T>();
             try
@@ -289,7 +204,7 @@ namespace HostsTool.Util
                     var reader = cmd.ExecuteReader();
                     while (reader.Read())
                     {
-                        list.Add(BuildObject(reader));
+                        list.Add((T)Activator.CreateInstance(typeof(T), reader));
                     }
                 }
             }
@@ -304,47 +219,23 @@ namespace HostsTool.Util
             return list;
         }
 
-        ///// <summary>
-        ///// 对SQLite数据库执行查询操作，返回第一个结果
-        ///// </summary>
-        ///// <param name="command">数据库操作命令</param>
-        ///// <returns>第一个结果</returns>
-        ///// <exception cref="Exception"></exception>
-        //public static Object ExecuteScalar(SQLiteCommand command)
-        //{
-        //    Object obj;
-        //    try
-        //    {
-        //        OpenConnection();
-        //        obj = command.ExecuteScalar();
-        //    }
-        //    catch (Exception)
-        //    {
-        //        throw;
-        //    }
-        //    finally
-        //    {
-        //        CloseConnection();
-        //    }
-        //    return obj;
-        //}
-
         /// <summary>
         /// 对SQLite数据库执行查询操作，返回第一个结果
         /// </summary>
+        /// <typeparam name="T">返回结果类型</typeparam>
         /// <param name="commandText">SQL语句</param>
         /// <param name="parameters">SQL语句参数</param>
         /// <returns>第一个结果</returns>
         /// <exception cref="Exception"></exception>
-        public static Object ExecuteScalar(String commandText, params SQLiteParameter[] parameters)
+        public static T ExecuteScalar<T>(String commandText, params SQLiteParameter[] parameters)
         {
-            Object obj;
+            T obj;
             try
             {
                 OpenConnection();
                 using (var cmd = CreateCommand(commandText, parameters))
                 {
-                    obj = cmd.ExecuteScalar();
+                    obj = (T)cmd.ExecuteScalar();
                 }
             }
             catch (Exception)

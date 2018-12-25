@@ -3,177 +3,207 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:mde="clr-namespace:MaterialDesignExtensions.Controls;assembly=MaterialDesignExtensions"
         xmlns:local="clr-namespace:HostsTool.View"
         xmlns:con="clr-namespace:HostsTool.Converter"
         mc:Ignorable="d"
-        Title="Hosts Tool" Height="600" Width="800" x:Name="window"
-        WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize" >
-    
-    <Window.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Theme/ListViewStyle.xaml"/>
-                <ResourceDictionary Source="/Theme/ButtonStyle.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-            <con:TypeToRadioConverter x:Key="typeToRadioConverter" />
-        </ResourceDictionary>
-    </Window.Resources>
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal" 
+        TextOptions.TextRenderingMode="Auto"        
+        Background="{DynamicResource MaterialDesignPaper}"
+        Title="Hosts Tool" Height="600" Width="800" 
+        WindowStartupLocation="CenterScreen" 
+        ResizeMode="CanMinimize"
+        WindowStyle="None"
+        BorderBrush="#FF2196F3" BorderThickness="1">
 
-    <Grid>
+  <Window.Resources>
+    <ResourceDictionary>
+      <Viewbox x:Key="Icon" Stretch="Uniform" x:Shared="False">
+        <Image Source="/HostsTool;component/Resources/Icon.ico" />
+      </Viewbox>
+      <con:TypeToBoolConverter x:Key="typeToBoolConverter" />
+      <con:TypeToKindConverter x:Key="TypeToKindConverter" />
+    </ResourceDictionary>
+  </Window.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+    <mde:AppBar x:Name="appBar" Grid.Row="0" Title="Hosts Tool" MouseMove="AppBar_MouseMove" AppIcon="{StaticResource Icon}">
+      <Button Style="{StaticResource MaterialDesignToolForegroundButton}" Margin="8,0" ToolTip="Minus" Click="Minus">
+        <md:PackIcon Kind="Minus" Height="24" Width="24"/>
+      </Button>
+      <Button Style="{StaticResource MaterialDesignToolForegroundButton}" Margin="8,0" ToolTip="Close" Click="Close">
+        <md:PackIcon Kind="Close" Height="24" Width="24"/>
+      </Button>
+    </mde:AppBar>
+    <Grid x:Name="content" Grid.Row="1" >
+      <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Grid Grid.Column="0" Background="#FF373D46">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="2*" />
-                <RowDefinition Height="18*" />
-                <RowDefinition Height="2*" />
-            </Grid.RowDefinitions>
-            <Grid Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock Foreground="#FFAAB3C0" Text="Hosts源" FontSize="16" />
-            </Grid>
-            <Grid Grid.Row="2">
-                <ListView ItemsSource="{Binding Sourcelist,Mode=OneWay}"
-                          Style="{StaticResource ListViewStyle}"
-                          SelectedItem="{Binding SelectedItem,Mode=TwoWay}" />
-            </Grid>
-            <Grid Grid.Row="3">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <Button Margin="10,0,0,5"
-                            Content="↑"
-                            Command="{Binding MoveUpCommand}"
-                            Style="{StaticResource ListButtonStyle}"/>
-                    <Button Margin="5,0,0,5"
-                            Content="+"
-                            Command="{Binding AddItemCommand}"
-                            Style="{StaticResource ListButtonStyle}"/>
-                    <Button Margin="0,0,0,5"
-                            Content="-" 
-                            Command="{Binding RemoveItemCommand}"
-                            Style="{StaticResource ListButtonStyle}"/>
-                    <Button Margin="0,0,10,5"
-                            Content="↓" 
-                            Command="{Binding MoveDownCommand}"
-                            Style="{StaticResource ListButtonStyle}"/>
-                </StackPanel>
-            </Grid>
-        </Grid>
-        
-        <Grid Grid.Column="1" HorizontalAlignment="Stretch">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            <Grid Grid.Row="0" Margin="10,5,10,5">
-                <Grid.RowDefinitions>
-                    <RowDefinition />
-                    <RowDefinition />
-                    <RowDefinition />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="10"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Row="0" Grid.Column="0"
-                           Margin="0,5" 
-                           Text="源标题:" 
-                           FontSize="16" />
-                <TextBox Grid.Row="0" Grid.Column="2" 
-                         Margin="0,5" 
-                         Text="{Binding SelectedItem.SourceTitle,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" 
-                         FontSize="16" 
-                         HorizontalAlignment="Stretch"/>
-
-                <TextBlock Grid.Row="1" Grid.Column="0" 
-                           Margin="0,5" 
-                           Text="源类型:" 
-                           FontSize="16" />
-                <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,5" Orientation="Horizontal">
-                    <RadioButton Margin="5,0" 
-                                 GroupName="source"
-                                 Content="本地源" 
-                                 FontSize="16"
-                                 IsChecked="{Binding SelectedItem.SourceType, 
-                                            Converter={StaticResource typeToRadioConverter},
-                                            ConverterParameter=0,
-                                            Mode=TwoWay}"
-                                 VerticalAlignment="Center" />
-                    <RadioButton Margin="5,0" 
-                                 Content="网络源" 
-                                 FontSize="16"
-                                 IsChecked="{Binding SelectedItem.SourceType, 
-                                            Converter={StaticResource typeToRadioConverter},
-                                            ConverterParameter=1,
-                                            Mode=TwoWay}"
-                                 GroupName="source"
-                                 VerticalAlignment="Center" />
-                </StackPanel>
-
-                <TextBlock Grid.Row="2" Grid.Column="0" 
-                           Margin="0,5" 
-                           Text="网络源地址:"
-                           FontSize="16" />
-                <TextBox Grid.Row="2" Grid.Column="2" 
-                         Margin="0,5"
-                         Text="{Binding SelectedItem.SourceUrl,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" 
-                         IsEnabled="{Binding SelectedItem.SourceType, 
-                                    Mode=TwoWay,
-                                    UpdateSourceTrigger=PropertyChanged,
-                                    Converter={StaticResource typeToRadioConverter},
-                                    ConverterParameter=1}"
-                         FontSize="16" 
-                         HorizontalAlignment="Stretch"/>
-            </Grid>
-            
-            <Grid Grid.Row="1" Margin="10,0" VerticalAlignment="Stretch">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0"
-                           Text="本地源内容:"
-                           FontSize="16" />
-                <TextBox Grid.Row="1" 
-                         Margin="0,10,0,0"
-                         Text="{Binding DataContext.SelectedItem.SourceContent,
-                                ElementName=window,
-                                Mode=TwoWay,
-                                UpdateSourceTrigger=PropertyChanged}"
-                         Padding="5"
-                         VerticalScrollBarVisibility="Auto"
-                         AcceptsReturn="True"
-                         AcceptsTab="True"
-                         FontSize="14"
-                         IsEnabled="{Binding DataContext.SelectedItem.SourceType, 
-                                    ElementName=window,
-                                    Mode=TwoWay,
-                                    UpdateSourceTrigger=PropertyChanged,
-                                    Converter={StaticResource typeToRadioConverter},
-                                    ConverterParameter=0}"/>
-            </Grid>
-            
-            <StackPanel Grid.Row="2" Margin="10" Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button Margin="10,0,5,0"
-                        Content=" 保存全部修改 "
-                        Command="{Binding SaveChangesCommand}"
-                        Style="{StaticResource FucButtonStyle}" />
-                <Button Margin="5,0,5,0"
-                        Content=" 整合更新Hosts " 
-                        Command="{Binding UpdateHostsCommand}"
-                        Style="{StaticResource FucButtonStyle}" />
-                <Button Margin="5,0,5,0"
-                        Content=" 手动修改系统Hosts " 
-                        Command="{Binding ModifyHostsCommand}"
-                        Style="{StaticResource FucButtonStyle}" />
-                <Button Margin="5,0,10,0"
-                        Content=" 关于&amp;帮助 " 
-                        Command="{Binding AboutCommand}"
-                        Style="{StaticResource FucButtonStyle}" />
+        <Grid Grid.Column="0" Margin="8,12,0,12">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+          <Grid Grid.Row="0" Margin="0,0,0,8" HorizontalAlignment="Center">
+            <TextBlock Style="{StaticResource MaterialDesignHeadlineTextBlock}" Text="Hosts源" />
+          </Grid>
+          <Grid Grid.Row="1">
+            <ListView ItemsSource="{Binding Sourcelist,Mode=OneWay}"
+                      SelectedItem="{Binding SelectedItem,Mode=TwoWay}">
+              <ListView.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Orientation="Horizontal" Margin="4">
+                    <md:PackIcon Kind="{Binding SourceType,
+                                              Mode=OneWay,
+                                              UpdateSourceTrigger=PropertyChanged,
+                                              Converter={StaticResource TypeToKindConverter}}"
+                                 Height="24" Width="24"
+                                 VerticalAlignment="Center"
+                                 />
+                    <TextBlock Margin="4,0,4,0" 
+                               Width="160" 
+                               Style="{StaticResource MaterialDesignBody1TextBlock}"
+                               Text="{Binding SourceTitle}"
+                               VerticalAlignment="Center"/>
+                    <ToggleButton IsChecked="{Binding SourceEnable}"
+                                  VerticalAlignment="Center"/>
+                  </StackPanel>
+                </DataTemplate>
+              </ListView.ItemTemplate>
+            </ListView>
+          </Grid>
+          <Grid Grid.Row="2">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,0">
+              <Button Padding="0"
+                      Margin="4,0"
+                      Command="{Binding MoveUpCommand}"
+                      Width="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
+                      ToolTip="上移">
+                <md:PackIcon Kind="ArrowUp" Height="24" Width="24"/>
+              </Button>
+              <Button Padding="0"
+                      Margin="4,0"
+                      Command="{Binding AddItemCommand}"
+                      Width="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
+                      ToolTip="添加新源">
+                <md:PackIcon Kind="Add" Height="24" Width="24"/>
+              </Button>
+              <Button Padding="0"
+                      Margin="4,0"
+                      Command="{Binding RemoveItemCommand}"
+                      Width="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
+                      ToolTip="删除当前选中源">
+                <md:PackIcon Kind="Remove" Height="24" Width="24"/>
+              </Button>
+              <Button Padding="0"
+                      Margin="4,0"
+                      Command="{Binding MoveDownCommand}"
+                      Width="{Binding ActualHeight, RelativeSource={RelativeSource Self}}"
+                      ToolTip="下移">
+                <md:PackIcon Kind="ArrowDown" Height="24" Width="24"/>
+              </Button>
             </StackPanel>
+          </Grid>
         </Grid>
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal">
+          <Separator Width="2" Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"/>
+        </StackPanel>
+
+        <Grid Grid.Column="2" Margin="0,12,8,12">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+          <Grid Grid.Row="0" Margin="8,0">
+            <Grid.RowDefinitions>
+              <RowDefinition />
+              <RowDefinition />
+              <RowDefinition />
+            </Grid.RowDefinitions>
+            <TextBox Grid.Row="0"
+                     Margin="0,4"
+                     md:HintAssist.Hint="源标题"
+                     md:TextFieldAssist.TextBoxViewMargin="1 0 1 0"
+                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                     FontSize="16"
+                     Text="{Binding SelectedItem.SourceTitle,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" />
+
+            <ComboBox Grid.Row="1" 
+                      Margin="0,4"
+                      md:HintAssist.Hint="源类型"
+                      md:TextFieldAssist.TextBoxViewMargin="1 0 1 0"
+                      Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                      FontSize="16">
+              <ComboBoxItem IsSelected="{Binding SelectedItem.SourceType, 
+                                         Converter={StaticResource typeToBoolConverter},
+                                         ConverterParameter=0,
+                                         Mode=TwoWay}">
+                本地源
+              </ComboBoxItem>
+              <ComboBoxItem IsSelected="{Binding SelectedItem.SourceType, 
+                                         Converter={StaticResource typeToBoolConverter},
+                                         ConverterParameter=1,
+                                         Mode=TwoWay}">
+                网络源
+              </ComboBoxItem>
+            </ComboBox>
+
+            <TextBox Grid.Row="2"
+                     Margin="0,4"
+                     md:HintAssist.Hint="网络源地址"
+                     md:TextFieldAssist.TextBoxViewMargin="1 0 1 0"
+                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                     FontSize="16"
+                     Text="{Binding SelectedItem.SourceUrl,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                     IsEnabled="{Binding SelectedItem.SourceType, 
+                                 Mode=OneWay,
+                                 UpdateSourceTrigger=PropertyChanged,
+                                 Converter={StaticResource typeToBoolConverter},
+                                 ConverterParameter=1}" />
+          </Grid>
+
+          <TextBox Grid.Row="1" Margin="8" VerticalAlignment="Stretch"
+                   md:HintAssist.Hint="本地源内容"
+                   md:TextFieldAssist.TextBoxViewMargin="1 0 1 0"
+                   Text="{Binding SelectedItem.SourceContent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                   Style="{StaticResource MaterialDesignOutlinedTextFieldTextBox}"
+                   FontSize="16"
+                   VerticalScrollBarVisibility="Auto"
+                   AcceptsReturn="True"
+                   AcceptsTab="True"
+                   IsEnabled="{Binding SelectedItem.SourceType,
+                               Mode=OneWay,
+                               UpdateSourceTrigger=PropertyChanged,
+                               Converter={StaticResource typeToBoolConverter},
+                               ConverterParameter=0}" />
+
+          <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button Margin="4,0"
+                    Content="保存全部修改"
+                    Command="{Binding SaveChangesCommand}" />
+            <Button Margin="4,0"
+                    Content="整合更新Hosts"
+                    Command="{Binding UpdateHostsCommand}"/>
+            <Button Margin="4,0"
+                    Content="手动修改系统Hosts" 
+                    Command="{Binding ModifyHostsCommand}" />
+          </StackPanel>
+        </Grid>
+      </Grid>
     </Grid>
+  </Grid>
 </Window>

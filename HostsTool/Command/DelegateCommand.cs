@@ -3,7 +3,7 @@ using System.Windows.Input;
 
 namespace HostsTool.Command
 {
-    internal class DelegateCommand : ICommand
+    public class DelegateCommand : ICommand
     {
         public Action<Object> ExecuteAction { get; set; }
         public Func<Object, Boolean> CancelExecute { get; set; }
