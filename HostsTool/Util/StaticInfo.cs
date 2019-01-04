@@ -14,8 +14,8 @@ namespace HostsTool.Util
 
         public static String DefaultHosts =>
 @"# Localhost
-127.0.0.1	localhost
-::1	    localhost";
+127.0.0.1   localhost
+::1         localhost";
 
         public static String Version => Assembly.GetExecutingAssembly().GetName().Version.ToString();
     }

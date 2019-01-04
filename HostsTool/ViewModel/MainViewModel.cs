@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Data;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
@@ -8,13 +7,16 @@ using HostsTool.Command;
 using HostsTool.Model;
 using HostsTool.Util;
 using HostsTool.View;
+using Newtonsoft.Json;
 
 namespace HostsTool.ViewModel
 {
     public class MainViewModel : ViewModelBase
     {
+        private const String dataFilePath = "hosts.json";
+
         private ObservableCollection<Source> _sourceList;
-        public ObservableCollection<Source> Sourcelist
+        public ObservableCollection<Source> SourceList
         {
             get
             {
@@ -23,7 +25,7 @@ namespace HostsTool.ViewModel
             set
             {
                 this._sourceList = value;
-                OnPropertyChanged(nameof(Sourcelist));
+                OnPropertyChanged(nameof(SourceList));
             }
         }
 
@@ -148,77 +150,56 @@ namespace HostsTool.ViewModel
 
         public MainViewModel()
         {
-            InitDatabase();
+            InitDefaultHosts();
             InitializeList();
 
-            if (this.Sourcelist.Count == 0)
+            if (this.SourceList.Count == 0)
             {
                 AddItem();
             }
 
-            this.SelectedItem = this.Sourcelist[0];
+            this.SelectedItem = this.SourceList[0];
         }
 
-        private void InitDatabase()
+        private void InitDefaultHosts()
         {
-            SQLiteHelper.SetConnection();
-            if (!SQLiteHelper.CheckDbExist(@"data.db"))
+            if (!File.Exists(dataFilePath))
             {
-                SQLiteHelper.CreateDB();
-                CreateTable();
+                File.Create(dataFilePath).Close();
             }
-            SQLiteHelper.DisposeConnection();
-        }
-
-        private void CreateTable()
-        {
-            String cmdText = "CREATE TABLE IF NOT EXISTS 'source' (" +
-                "sourceGuid    TEXT PRIMARY KEY NOT NULL," +
-                "sourceTitle   TEXT," +
-                "sourceType    INTEGER," +
-                "sourceUrl     TEXT," +
-                "sourceEnable  INTEGER," +
-                "sourceContent TEXT" +
-                ")";
-            SQLiteHelper.ExecuteNonQuery(cmdText);
-
-            var source = new Source()
+            if (String.IsNullOrWhiteSpace(File.ReadAllText(dataFilePath)))
             {
-                SourceGuid = Guid.NewGuid(),
-                SourceTitle = "Localhost",
-                SourceType = SourceType.Local,
-                SourceEnable = true,
-                SourceUrl = null,
-                SourceContent = StaticInfo.DefaultHosts
-            };
-            String cmdTextl = "INSERT INTO 'source' " +
-                "(sourceGuid,sourceTitle,sourceType,sourceUrl,sourceEnable,sourceContent) " +
-                "VALUES " +
-                "(@sourceGuid,@sourceTitle,@sourceType,@sourceUrl,@sourceEnable,@sourceContent)";
-            SQLiteHelper.ExecuteNonQuery(cmdTextl,
-                SQLiteHelper.CreateParameter("sourceGuid", DbType.String, source.SourceGuid),
-                SQLiteHelper.CreateParameter("sourceTitle", DbType.String, source.SourceTitle),
-                SQLiteHelper.CreateParameter("sourceType", DbType.Int32, source.SourceType),
-                SQLiteHelper.CreateParameter("sourceUrl", DbType.String, source.SourceUrl),
-                SQLiteHelper.CreateParameter("sourceEnable", DbType.Int32, source.SourceEnable),
-                SQLiteHelper.CreateParameter("sourceContent", DbType.String, source.SourceContent));
+                SourceList = new ObservableCollection<Source>()
+                {
+                    new Source()
+                    {
+                        SourceGuid = Guid.NewGuid(),
+                        SourceTitle = "Localhost",
+                        SourceType = SourceType.Local,
+                        SourceEnable = true,
+                        SourceContent = StaticInfo.DefaultHosts
+                    }
+                };
+                var json = JsonConvert.SerializeObject(SourceList);
+                File.WriteAllText(dataFilePath, json);
+            }
         }
 
         private void InitializeList()
         {
-            SQLiteHelper.SetConnection();
-            String cmdText = "SELECT * FROM 'source'";
-            var items = SQLiteHelper.ExecuteReader<Source>(cmdText);
-            SQLiteHelper.DisposeConnection();
-
-            Sourcelist = new ObservableCollection<Source>(items);
-            if (Sourcelist != null && Sourcelist.Count > 0)
+            var json = File.ReadAllText(dataFilePath);
+            try
             {
-                this.SelectedItem = Sourcelist[0];
+                SourceList = JsonConvert.DeserializeObject<ObservableCollection<Source>>(json);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                Application.Current.Shutdown();
             }
 
             #region test data
-            //this.Sourcelist = new ObservableCollection<Source>
+            //this.SourceList = new ObservableCollection<Source>
             //{
             //    new Source()
             //    {
@@ -226,7 +207,6 @@ namespace HostsTool.ViewModel
             //        SourceTitle = "本地源1",
             //        SourceType = SourceType.Local,
             //        SourceEnable = true,
-            //        SourceUrl = String.Empty,
             //        SourceContent = "127.0.0.1 website.com"
             //    },
             //    new Source()
@@ -235,8 +215,7 @@ namespace HostsTool.ViewModel
             //        SourceTitle = "网络源1",
             //        SourceType = SourceType.Web,
             //        SourceEnable = true,
-            //        SourceUrl = "www.baidu.com",
-            //        SourceContent = String.Empty
+            //        SourceUrl = "www.baidu.com"
             //    },
             //    new Source()
             //    {
@@ -244,7 +223,6 @@ namespace HostsTool.ViewModel
             //        SourceTitle = "本地源2",
             //        SourceType = SourceType.Local,
             //        SourceEnable = false,
-            //        SourceUrl = String.Empty,
             //        SourceContent = "127.0.0.1 website.com"
             //    },
             //    new Source()
@@ -253,8 +231,7 @@ namespace HostsTool.ViewModel
             //        SourceTitle = "网络源2",
             //        SourceType = SourceType.Web,
             //        SourceEnable = false,
-            //        SourceUrl = "www.google.com",
-            //        SourceContent = String.Empty
+            //        SourceUrl = "www.google.com"
             //    }
             //};
             #endregion
@@ -268,26 +245,20 @@ namespace HostsTool.ViewModel
                 SourceTitle = "本地源Localhost",
                 SourceType = SourceType.Local,
                 SourceEnable = false,
-                SourceUrl = null,
                 SourceContent = "127.0.0.1 localhost"
             };
-            this.Sourcelist.Add(source);
+            this.SourceList.Add(source);
             this.SelectedItem = source;
         }
 
         private void RemoveItem()
         {
-            SQLiteHelper.SetConnection();
-            String cmdText = $"DELETE FROM 'source' WHERE sourceGuid='{SelectedItem.SourceGuid}'";
-            SQLiteHelper.ExecuteNonQuery(cmdText);
-            SQLiteHelper.DisposeConnection();
-
             if (SelectedItem != null)
             {
-                this.Sourcelist.Remove(SelectedItem);
-                this.SelectedItem = this.Sourcelist.Count > 0 ? this.Sourcelist[0] : null;
+                this.SourceList.Remove(SelectedItem);
+                this.SelectedItem = this.SourceList.Count > 0 ? this.SourceList[0] : null;
             }
-            if (this.Sourcelist.Count == 0)
+            if (this.SourceList.Count == 0)
             {
                 AddItem();
             }
@@ -295,70 +266,55 @@ namespace HostsTool.ViewModel
 
         private void MoveUp()
         {
-            if (this.Sourcelist != null && this.SelectedItem != null)
+            if (this.SourceList != null && this.SelectedItem != null)
             {
-                var index = this.Sourcelist.IndexOf(SelectedItem);
+                var index = this.SourceList.IndexOf(SelectedItem);
                 if (index != 0)
                 {
-                    this.Sourcelist.Move(index, index - 1);
+                    this.SourceList.Move(index, index - 1);
                 }
             }
         }
 
         private void MoveDown()
         {
-            if (this.Sourcelist != null && this.SelectedItem != null)
+            if (this.SourceList != null && this.SelectedItem != null)
             {
-                var index = this.Sourcelist.IndexOf(SelectedItem);
-                if (index != this.Sourcelist.Count - 1)
+                var index = this.SourceList.IndexOf(SelectedItem);
+                if (index != this.SourceList.Count - 1)
                 {
-                    Sourcelist.Move(index, index + 1);
+                    SourceList.Move(index, index + 1);
                 }
             }
         }
 
         private void SaveChanges()
         {
-            SQLiteHelper.SetConnection();
-            String cmdText = "REPLACE INTO 'source'" +
-                "(sourceGuid,sourceTitle,sourceType,sourceUrl,sourceEnable,sourceContent) " +
-                "VALUES" +
-                "(@sourceGuid,@sourceTitle,@sourceType,@sourceUrl,@sourceEnable,@sourceContent)";
-
-            foreach (var item in Sourcelist)
+            if (!File.Exists(dataFilePath))
             {
-                if (item.SourceType == SourceType.Local)
-                    item.SourceUrl = null;
-                else if (item.SourceType == SourceType.Web)
-                    item.SourceContent = null;
-                SQLiteHelper.ExecuteNonQuery(cmdText,
-                    SQLiteHelper.CreateParameter("sourceGuid", DbType.String, item.SourceGuid),
-                    SQLiteHelper.CreateParameter("sourceTitle", DbType.String, item.SourceTitle),
-                    SQLiteHelper.CreateParameter("sourceType", DbType.Int32, item.SourceType),
-                    SQLiteHelper.CreateParameter("sourceUrl", DbType.String, item.SourceUrl),
-                    SQLiteHelper.CreateParameter("sourceEnable", DbType.Int32, item.SourceEnable),
-                    SQLiteHelper.CreateParameter("sourceContent", DbType.String, item.SourceContent));
+                File.Create(dataFilePath).Close();
             }
-            SQLiteHelper.DisposeConnection();
+            var json = JsonConvert.SerializeObject(SourceList);
+            File.WriteAllText(dataFilePath, json);
         }
 
         private async void UpdateHosts()
         {
             String hosts = String.Empty;
-            foreach (var source in Sourcelist)
+            foreach (var source in SourceList)
             {
                 if (source.SourceEnable != true)
                     continue;
                 try
                 {
                     var data = source.SourceType == SourceType.Local ?
-                                                     source.SourceContent :
-                                                     await Utilities.GetStringAsync(source.SourceUrl);
+                                                    source.SourceContent :
+                                                    await Utilities.GetStringAsync(source.SourceUrl);
                     Utilities.MixHosts(ref hosts, data, source.SourceTitle);
                 }
                 catch (Exception)
                 {
-                    MessageBox.Show(String.Format($"源 \"{source.SourceTitle}\" 内容获取失败，将略过"));
+                    MessageBox.Show($"源 \"{source.SourceTitle}\" 内容获取失败，将略过", "Hosts Tool");
                     continue;
                 }
 

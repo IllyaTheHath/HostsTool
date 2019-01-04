@@ -60,7 +60,7 @@
             <TextBlock Style="{StaticResource MaterialDesignHeadlineTextBlock}" Text="Hosts源" />
           </Grid>
           <Grid Grid.Row="1">
-            <ListView ItemsSource="{Binding Sourcelist,Mode=OneWay}"
+            <ListView ItemsSource="{Binding SourceList,Mode=OneWay}"
                       SelectedItem="{Binding SelectedItem,Mode=TwoWay}">
               <ListView.ItemTemplate>
                 <DataTemplate>
