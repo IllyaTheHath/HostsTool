@@ -244,8 +244,7 @@ namespace HostsTool.ViewModel
                 SourceGuid = Guid.NewGuid(),
                 SourceTitle = "本地源Localhost",
                 SourceType = SourceType.Local,
-                SourceEnable = false,
-                SourceContent = "127.0.0.1 localhost"
+                SourceEnable = false
             };
             this.SourceList.Add(source);
             this.SelectedItem = source;
