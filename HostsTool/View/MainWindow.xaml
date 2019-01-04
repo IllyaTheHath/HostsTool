@@ -205,5 +205,6 @@
         </Grid>
       </Grid>
     </Grid>
+    <md:Snackbar Grid.Row="1" MessageQueue="{Binding MessageQueue}"/>
   </Grid>
 </Window>

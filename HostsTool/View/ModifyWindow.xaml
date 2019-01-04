@@ -62,5 +62,6 @@
               Content="从文件读取"
               Command="{Binding LoadFromCommand}" />
     </StackPanel>
+    <md:Snackbar Grid.Row="2" MessageQueue="{Binding MessageQueue}"/>
   </Grid>
 </Window>

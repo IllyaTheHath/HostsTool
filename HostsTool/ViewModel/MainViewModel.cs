@@ -7,6 +7,7 @@ using HostsTool.Command;
 using HostsTool.Model;
 using HostsTool.Util;
 using HostsTool.View;
+using MaterialDesignThemes.Wpf;
 using Newtonsoft.Json;
 
 namespace HostsTool.ViewModel
@@ -40,6 +41,20 @@ namespace HostsTool.ViewModel
             {
                 this._selectItem = value;
                 OnPropertyChanged(nameof(SelectedItem));
+            }
+        }
+
+        private SnackbarMessageQueue _messageQueue;
+        public SnackbarMessageQueue MessageQueue
+        {
+            get
+            {
+                return this._messageQueue;
+            }
+            set
+            {
+                this._messageQueue = value;
+                OnPropertyChanged(nameof(MessageQueue));
             }
         }
 
@@ -159,6 +174,7 @@ namespace HostsTool.ViewModel
             }
 
             this.SelectedItem = this.SourceList[0];
+            this.MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(500));
         }
 
         private void InitDefaultHosts()
@@ -295,6 +311,7 @@ namespace HostsTool.ViewModel
             }
             var json = JsonConvert.SerializeObject(SourceList);
             File.WriteAllText(dataFilePath, json);
+            MessageQueue.Enqueue("保存成功");
         }
 
         private async void UpdateHosts()
@@ -313,14 +330,14 @@ namespace HostsTool.ViewModel
                 }
                 catch (Exception)
                 {
-                    MessageBox.Show($"源 \"{source.SourceTitle}\" 内容获取失败，将略过", "Hosts Tool");
+                    MessageQueue.Enqueue($"源 \"{source.SourceTitle}\" 内容获取失败，将略过");
                     continue;
                 }
 
             }
             File.WriteAllText(StaticInfo.HostsPath, hosts);
             Utilities.FlushDNS();
-            MessageBox.Show("更新成功！", "Hosts Tool");
+            MessageQueue.Enqueue("更新成功");
         }
 
         private void ShowModifyHosts()

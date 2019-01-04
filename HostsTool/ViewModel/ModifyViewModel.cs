@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
-using System.Windows;
 using System.Windows.Input;
 using HostsTool.Command;
 using HostsTool.Util;
+using MaterialDesignThemes.Wpf;
 using Microsoft.Win32;
 
 namespace HostsTool.ViewModel
@@ -23,6 +23,20 @@ namespace HostsTool.ViewModel
             {
                 this._hostsText = value;
                 OnPropertyChanged(nameof(HostsText));
+            }
+        }
+
+        private SnackbarMessageQueue _messageQueue;
+        public SnackbarMessageQueue MessageQueue
+        {
+            get
+            {
+                return this._messageQueue;
+            }
+            set
+            {
+                this._messageQueue = value;
+                OnPropertyChanged(nameof(MessageQueue));
             }
         }
 
@@ -105,18 +119,20 @@ namespace HostsTool.ViewModel
         {
             this.HostsText = File.ReadAllText(StaticInfo.HostsPath);
             this._hostsTextBackup = this.HostsText;
+            this.MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(500));
         }
 
         private void SaveChanges()
         {
             File.WriteAllText(StaticInfo.HostsPath, this.HostsText);
             Utilities.FlushDNS();
-            MessageBox.Show("保存成功", "Hosts Tool");
+            MessageQueue.Enqueue("保存成功");
         }
 
         private void CancelChanges()
         {
             this.HostsText = this._hostsTextBackup;
+            MessageQueue.Enqueue("撤销成功");
         }
 
         private void RestoreDefault()
@@ -124,7 +140,7 @@ namespace HostsTool.ViewModel
             this.HostsText = StaticInfo.DefaultHosts;
             File.WriteAllText(StaticInfo.HostsPath, this.HostsText);
             Utilities.FlushDNS();
-            MessageBox.Show("还原成功", "Hosts Tool");
+            MessageQueue.Enqueue("恢复默认成功");
         }
 
         private void SaveAs()
@@ -134,6 +150,7 @@ namespace HostsTool.ViewModel
             if (sfd.ShowDialog() == true)
             {
                 File.WriteAllText(sfd.FileName, this.HostsText);
+                MessageQueue.Enqueue("保存成功");
             }
         }
 
@@ -144,6 +161,7 @@ namespace HostsTool.ViewModel
             if (ofd.ShowDialog() == true)
             {
                 this.HostsText = File.ReadAllText(ofd.FileName);
+                MessageQueue.Enqueue("导入成功");
             }
         }
     }
