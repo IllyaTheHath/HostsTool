@@ -1,191 +1,58 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
-using HostsTool.Command;
+
 using HostsTool.Model;
 using HostsTool.Util;
-using HostsTool.View;
+
 using MaterialDesignThemes.Wpf;
+
 using Newtonsoft.Json;
+
+using Stylet;
 
 namespace HostsTool.ViewModel
 {
-    public class MainViewModel : ViewModelBase
+    public class MainViewModel : Screen
     {
         private const String dataFilePath = "hosts.json";
 
-        private ObservableCollection<Source> _sourceList;
-        public ObservableCollection<Source> SourceList
-        {
-            get
-            {
-                return this._sourceList;
-            }
-            set
-            {
-                this._sourceList = value;
-                OnPropertyChanged(nameof(SourceList));
-            }
-        }
+        private readonly IWindowManager _windowManager;
 
-        private Source _selectItem;
-        public Source SelectedItem
-        {
-            get
-            {
-                return this._selectItem;
-            }
-            set
-            {
-                this._selectItem = value;
-                OnPropertyChanged(nameof(SelectedItem));
-            }
-        }
+        public BindableCollection<Source> SourceList { get; set; }
 
-        private SnackbarMessageQueue _messageQueue;
-        public SnackbarMessageQueue MessageQueue
-        {
-            get
-            {
-                return this._messageQueue;
-            }
-            set
-            {
-                this._messageQueue = value;
-                OnPropertyChanged(nameof(MessageQueue));
-            }
-        }
+        public Source SelectedItem { get; set; }
 
-        private ICommand _addItemCommand;
-        public ICommand AddItemCommand
-        {
-            get
-            {
-                if (_addItemCommand == null)
-                {
-                    _addItemCommand = new DelegateCommand(
-                        param => this.AddItem()
-                    );
-                }
-                return _addItemCommand;
-            }
-        }
+        public SnackbarMessageQueue MessageQueue { get; set; }
 
-        private ICommand _removeItemCommand;
-        public ICommand RemoveItemCommand
+        public MainViewModel(IWindowManager windowManager)
         {
-            get
-            {
-                if (_removeItemCommand == null)
-                {
-                    _removeItemCommand = new DelegateCommand(
-                        param => this.RemoveItem()
-                    );
-                }
-                return _removeItemCommand;
-            }
-        }
+            this._windowManager = windowManager;
 
-        private ICommand _moveUpCommand;
-        public ICommand MoveUpCommand
-        {
-            get
-            {
-                if (_moveUpCommand == null)
-                {
-                    _moveUpCommand = new DelegateCommand(
-                        param => this.MoveUp()
-                    );
-                }
-                return _moveUpCommand;
-            }
-        }
-
-        private ICommand _moveDownCommand;
-        public ICommand MoveDownCommand
-        {
-            get
-            {
-                if (_moveDownCommand == null)
-                {
-                    _moveDownCommand = new DelegateCommand(
-                        param => this.MoveDown()
-                    );
-                }
-                return _moveDownCommand;
-            }
-        }
-
-        private ICommand _saveChangesCommand;
-        public ICommand SaveChangesCommand
-        {
-            get
-            {
-                if (_saveChangesCommand == null)
-                {
-                    _saveChangesCommand = new DelegateCommand(
-                        param => this.SaveChanges()
-                    );
-                }
-                return _saveChangesCommand;
-            }
-        }
-
-        private ICommand _updateHostsCommand;
-        public ICommand UpdateHostsCommand
-        {
-            get
-            {
-                if (_updateHostsCommand == null)
-                {
-                    _updateHostsCommand = new DelegateCommand(
-                        param => this.UpdateHosts()
-                    );
-                }
-                return _updateHostsCommand;
-            }
-        }
-
-        private ICommand _modifyHostsCommand;
-        public ICommand ModifyHostsCommand
-        {
-            get
-            {
-                if (_modifyHostsCommand == null)
-                {
-                    _modifyHostsCommand = new DelegateCommand(
-                        param => this.ShowModifyHosts()
-                    );
-                }
-                return _modifyHostsCommand;
-            }
-        }
-
-        public MainViewModel()
-        {
             InitDefaultHosts();
             InitializeList();
 
-            if (this.SourceList.Count == 0)
+            if (SourceList.Count == 0)
             {
                 AddItem();
             }
 
-            this.SelectedItem = this.SourceList[0];
-            this.MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(500));
+            SelectedItem = SourceList[0];
+            MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(500));
         }
 
         private void InitDefaultHosts()
         {
-            if (!File.Exists(dataFilePath))
+            String data = String.Empty;
+            if (File.Exists(dataFilePath))
             {
-                File.Create(dataFilePath).Close();
+                data = File.ReadAllText(dataFilePath);
             }
-            if (String.IsNullOrWhiteSpace(File.ReadAllText(dataFilePath)))
+
+            if (String.IsNullOrWhiteSpace(data))
             {
-                SourceList = new ObservableCollection<Source>()
+                SourceList = new BindableCollection<Source>
                 {
                     new Source()
                     {
@@ -206,16 +73,17 @@ namespace HostsTool.ViewModel
             var json = File.ReadAllText(dataFilePath);
             try
             {
-                SourceList = JsonConvert.DeserializeObject<ObservableCollection<Source>>(json);
+                SourceList = JsonConvert.DeserializeObject<BindableCollection<Source>>(json);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
-                Application.Current.Shutdown();
+                this._windowManager.ShowMessageBox(ex.ToString());
+                RequestClose();
             }
 
             #region test data
-            //this.SourceList = new ObservableCollection<Source>
+
+            //this.SourceList = new BindableCollection<Source>
             //{
             //    new Source()
             //    {
@@ -250,10 +118,11 @@ namespace HostsTool.ViewModel
             //        SourceUrl = "www.google.com"
             //    }
             //};
-            #endregion
+
+            #endregion test data
         }
 
-        private void AddItem()
+        public void AddItem()
         {
             var source = new Source()
             {
@@ -262,65 +131,64 @@ namespace HostsTool.ViewModel
                 SourceType = SourceType.Local,
                 SourceEnable = false
             };
-            this.SourceList.Add(source);
-            this.SelectedItem = source;
+            SourceList.Add(source);
+            SelectedItem = source;
         }
 
-        private void RemoveItem()
+        public void RemoveItem()
         {
             if (SelectedItem != null)
             {
-                this.SourceList.Remove(SelectedItem);
-                this.SelectedItem = this.SourceList.Count > 0 ? this.SourceList[0] : null;
+                SourceList.Remove(SelectedItem);
+                SelectedItem = SourceList.Count > 0 ? SourceList[0] : null;
             }
-            if (this.SourceList.Count == 0)
+            if (SourceList.Count == 0)
             {
                 AddItem();
             }
         }
 
-        private void MoveUp()
+        public void MoveUp()
         {
-            if (this.SourceList != null && this.SelectedItem != null)
+            if (SourceList != null && SelectedItem != null)
             {
-                var index = this.SourceList.IndexOf(SelectedItem);
+                var index = SourceList.IndexOf(SelectedItem);
                 if (index != 0)
                 {
-                    this.SourceList.Move(index, index - 1);
+                    SourceList.Move(index, index - 1);
                 }
             }
         }
 
-        private void MoveDown()
+        public void MoveDown()
         {
-            if (this.SourceList != null && this.SelectedItem != null)
+            if (SourceList != null && SelectedItem != null)
             {
-                var index = this.SourceList.IndexOf(SelectedItem);
-                if (index != this.SourceList.Count - 1)
+                var index = SourceList.IndexOf(SelectedItem);
+                if (index != SourceList.Count - 1)
                 {
                     SourceList.Move(index, index + 1);
                 }
             }
         }
 
-        private void SaveChanges()
+        public void SaveChanges()
         {
-            if (!File.Exists(dataFilePath))
-            {
-                File.Create(dataFilePath).Close();
-            }
             var json = JsonConvert.SerializeObject(SourceList);
             File.WriteAllText(dataFilePath, json);
             MessageQueue.Enqueue("保存成功");
         }
 
-        private async void UpdateHosts()
+        public async void UpdateHosts()
         {
             String hosts = String.Empty;
             foreach (var source in SourceList)
             {
                 if (source.SourceEnable != true)
+                {
                     continue;
+                }
+
                 try
                 {
                     var data = source.SourceType == SourceType.Local ?
@@ -333,19 +201,42 @@ namespace HostsTool.ViewModel
                     MessageQueue.Enqueue($"源 \"{source.SourceTitle}\" 内容获取失败，将略过");
                     continue;
                 }
-
             }
             File.WriteAllText(StaticInfo.HostsPath, hosts);
             Utilities.FlushDNS();
             MessageQueue.Enqueue("更新成功");
         }
 
-        private void ShowModifyHosts()
+        public void ShowModifyHosts()
         {
-            new ModifyWindow()
+            //new ModifyWindow()
+            //{
+            //    Owner = Application.Current.MainWindow
+            //}.ShowDialog();
+            var viewModel = new ModifyViewModel();
+            this._windowManager.ShowDialog(viewModel);
+        }
+
+        public void AppBar_MouseMove(MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
             {
-                Owner = Application.Current.MainWindow
-            }.ShowDialog();
+                ((Window)View).DragMove();
+            }
+        }
+
+        public void Close()
+        {
+            RequestClose();
+            //((Window)this.View).Close();
+        }
+
+        public void Minus()
+        {
+            if (((Window)View).WindowState != WindowState.Minimized)
+            {
+                ((Window)View).WindowState = WindowState.Minimized;
+            }
         }
     }
 }
