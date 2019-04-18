@@ -148,7 +148,6 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Command\DelegateCommand.cs" />
     <Compile Include="Converter\TypeToBoolConverter.cs" />
     <Compile Include="Converter\TypeToKindConverter.cs" />
     <Compile Include="Model\Source.cs" />
