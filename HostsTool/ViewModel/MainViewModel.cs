@@ -39,7 +39,7 @@ namespace HostsTool.ViewModel
             }
 
             SelectedItem = SourceList[0];
-            MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(500));
+            MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(200));
         }
 
         private void InitDefaultHosts()
@@ -181,6 +181,8 @@ namespace HostsTool.ViewModel
 
         public async void UpdateHosts()
         {
+            var json = JsonConvert.SerializeObject(SourceList);
+            File.WriteAllText(dataFilePath, json);
             String hosts = String.Empty;
             foreach (var source in SourceList)
             {

@@ -238,11 +238,11 @@
             <Button
               Margin="4,0"
               Command="{s:Action SaveChanges}"
-              Content="保存全部修改" />
+              Content="保存修改" />
             <Button
               Margin="4,0"
               Command="{s:Action UpdateHosts}"
-              Content="整合更新Hosts" />
+              Content="保存修改并更新Hosts" />
             <Button
               Margin="4,0"
               Command="{s:Action ShowModifyHosts}"

@@ -25,7 +25,7 @@ namespace HostsTool.ViewModel
         {
             HostsText = File.ReadAllText(StaticInfo.HostsPath);
             this._hostsTextBackup = HostsText;
-            MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(500));
+            MessageQueue = new SnackbarMessageQueue(TimeSpan.FromMilliseconds(200));
         }
 
         public void SaveChanges()
