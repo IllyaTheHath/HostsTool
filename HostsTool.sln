@@ -1,37 +1,31 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.28407.52
+VisualStudioVersion = 16.0.30021.99
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HostsTool", "HostsTool\HostsTool.csproj", "{9EA7B9F1-D497-4FAB-A08A-A29E1EDD9FEF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HostsTool", "HostsTool.csproj", "{CD33DE77-991E-4BD2-ACD0-48590443B7F4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
-		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9EA7B9F1-D497-4FAB-A08A-A29E1EDD9FEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9EA7B9F1-D497-4FAB-A08A-A29E1EDD9FEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9EA7B9F1-D497-4FAB-A08A-A29E1EDD9FEF}.Debug|x64.ActiveCfg = Debug|x64
-		{9EA7B9F1-D497-4FAB-A08A-A29E1EDD9FEF}.Debug|x64.Build.0 = Debug|x64
-		{9EA7B9F1-D497-4FAB-A08A-A29E1EDD9FEF}.Debug|x86.ActiveCfg = Debug|x86
-		{9EA7B9F1-D497-4FAB-A08A-A29E1EDD9FEF}.Debug|x86.Build.0 = Debug|x86
-		{9EA7B9F1-D497-4FAB-A08A-A29E1EDD9FEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9EA7B9F1-D497-4FAB-A08A-A29E1EDD9FEF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9EA7B9F1-D497-4FAB-A08A-A29E1EDD9FEF}.Release|x64.ActiveCfg = Release|x64
-		{9EA7B9F1-D497-4FAB-A08A-A29E1EDD9FEF}.Release|x64.Build.0 = Release|x64
-		{9EA7B9F1-D497-4FAB-A08A-A29E1EDD9FEF}.Release|x86.ActiveCfg = Release|x86
-		{9EA7B9F1-D497-4FAB-A08A-A29E1EDD9FEF}.Release|x86.Build.0 = Release|x86
+		{CD33DE77-991E-4BD2-ACD0-48590443B7F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD33DE77-991E-4BD2-ACD0-48590443B7F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD33DE77-991E-4BD2-ACD0-48590443B7F4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CD33DE77-991E-4BD2-ACD0-48590443B7F4}.Debug|x64.Build.0 = Debug|Any CPU
+		{CD33DE77-991E-4BD2-ACD0-48590443B7F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD33DE77-991E-4BD2-ACD0-48590443B7F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD33DE77-991E-4BD2-ACD0-48590443B7F4}.Release|x64.ActiveCfg = Release|Any CPU
+		{CD33DE77-991E-4BD2-ACD0-48590443B7F4}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {2D1D2AEB-AFDF-46C0-9ACA-DEE57D76C0C7}
+		SolutionGuid = {671EFB7C-E44B-4B56-9BFC-3D4BFD23ADBB}
 	EndGlobalSection
 EndGlobal

@@ -63,14 +63,14 @@ namespace HostsTool.ViewModel
                         SourceContent = StaticInfo.DefaultHosts
                     }
                 };
-                var json = JsonConvert.SerializeObject(SourceList);
+                String json = JsonConvert.SerializeObject(SourceList);
                 File.WriteAllText(dataFilePath, json);
             }
         }
 
         private void InitializeList()
         {
-            var json = File.ReadAllText(dataFilePath);
+            String json = File.ReadAllText(dataFilePath);
             try
             {
                 SourceList = JsonConvert.DeserializeObject<BindableCollection<Source>>(json);
@@ -152,7 +152,7 @@ namespace HostsTool.ViewModel
         {
             if (SourceList != null && SelectedItem != null)
             {
-                var index = SourceList.IndexOf(SelectedItem);
+                Int32 index = SourceList.IndexOf(SelectedItem);
                 if (index != 0)
                 {
                     SourceList.Move(index, index - 1);
@@ -164,7 +164,7 @@ namespace HostsTool.ViewModel
         {
             if (SourceList != null && SelectedItem != null)
             {
-                var index = SourceList.IndexOf(SelectedItem);
+                Int32 index = SourceList.IndexOf(SelectedItem);
                 if (index != SourceList.Count - 1)
                 {
                     SourceList.Move(index, index + 1);
@@ -174,14 +174,14 @@ namespace HostsTool.ViewModel
 
         public void SaveChanges()
         {
-            var json = JsonConvert.SerializeObject(SourceList);
+            String json = JsonConvert.SerializeObject(SourceList);
             File.WriteAllText(dataFilePath, json);
             MessageQueue.Enqueue("保存成功");
         }
 
         public async void UpdateHosts()
         {
-            var json = JsonConvert.SerializeObject(SourceList);
+            String json = JsonConvert.SerializeObject(SourceList);
             File.WriteAllText(dataFilePath, json);
             String hosts = String.Empty;
             foreach (var source in SourceList)
@@ -193,7 +193,7 @@ namespace HostsTool.ViewModel
 
                 try
                 {
-                    var data = source.SourceType == SourceType.Local ?
+                    String data = source.SourceType == SourceType.Local ?
                                                     source.SourceContent :
                                                     await Utilities.GetStringAsync(source.SourceUrl);
                     Utilities.MixHosts(ref hosts, data, source.SourceTitle);
@@ -230,7 +230,6 @@ namespace HostsTool.ViewModel
         public void Close()
         {
             RequestClose();
-            //((Window)this.View).Close();
         }
 
         public void Minus()

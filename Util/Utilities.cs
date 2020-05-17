@@ -10,14 +10,12 @@ namespace HostsTool.Util
     {
         public static void FlushDNS()
         {
-            using (Process p = new Process())
-            {
-                p.StartInfo.FileName = "cmd.exe";
-                p.StartInfo.Arguments = "/C ipconfig /flushdns";
-                p.StartInfo.UseShellExecute = false;
-                p.StartInfo.CreateNoWindow = true;
-                p.Start();
-            }
+            using Process p = new Process();
+            p.StartInfo.FileName = "cmd.exe";
+            p.StartInfo.Arguments = "/C ipconfig /flushdns";
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.CreateNoWindow = true;
+            p.Start();
         }
 
         public static async Task<String> GetStringAsync(String url)
@@ -28,16 +26,10 @@ namespace HostsTool.Util
 
             try
             {
-                using (var response = (HttpWebResponse)await request.GetResponseAsync().ConfigureAwait(false))
-                {
-                    using (var stream = response.GetResponseStream())
-                    {
-                        using (var reader = new StreamReader(stream))
-                        {
-                            result = reader.ReadToEnd();
-                        }
-                    }
-                }
+                using var response = (HttpWebResponse)await request.GetResponseAsync().ConfigureAwait(false);
+                using var stream = response.GetResponseStream();
+                using var reader = new StreamReader(stream);
+                result = reader.ReadToEnd();
             }
             catch (Exception)
             {

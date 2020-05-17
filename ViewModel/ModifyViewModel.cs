@@ -82,7 +82,6 @@ namespace HostsTool.ViewModel
         public void Close()
         {
             this.RequestClose();
-            //((Window)View).Close();
         }
     }
 }

@@ -4,7 +4,7 @@ using Stylet;
 
 using StyletIoC;
 
-namespace HostsTool
+namespace HostTool
 {
     public class Bootstrapper : Bootstrapper<MainViewModel>
     {

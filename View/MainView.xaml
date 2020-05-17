@@ -43,7 +43,7 @@
       MouseMove="{s:Action AppBar_MouseMove}">
       <DockPanel>
         <Viewbox Margin="15,10" Stretch="Uniform">
-          <Image Source="/HostsTool;component/Resources/Icon.ico" />
+          <Image Source="/Resources/Icon.ico" />
         </Viewbox>
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
           <Button
@@ -89,7 +89,7 @@
             Grid.Row="0"
             Margin="0,0,0,8"
             HorizontalAlignment="Center">
-            <TextBlock Style="{StaticResource MaterialDesignHeadlineTextBlock}" Text="Hosts源" />
+            <TextBlock Style="{StaticResource MaterialDesignHeadline5TextBlock}" Text="Hosts源" />
           </Grid>
           <Grid Grid.Row="1">
             <ListView ItemsSource="{Binding SourceList}" SelectedItem="{Binding SelectedItem}">
@@ -105,7 +105,7 @@
                       Width="160"
                       Margin="4,0,4,0"
                       VerticalAlignment="Center"
-                      Style="{StaticResource MaterialDesignBody1TextBlock}"
+                      Style="{StaticResource MaterialDesignBody2TextBlock}"
                       Text="{Binding SourceTitle}" />
                     <ToggleButton VerticalAlignment="Center" IsChecked="{Binding SourceEnable}" />
                   </StackPanel>
